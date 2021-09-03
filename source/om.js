@@ -495,7 +495,9 @@ om.File = class {
                 case 5: { // DEVICE_CONFIG
                     this.devices = new Map();
                     const decoder = new TextDecoder('ascii');
-                    for (let position = 0; position < partition.size; ) {
+                    const reader = new om.File.BinaryReader(buffer);
+                    reader.uint32();
+                    for (let position = 4; position < partition.size; ) {
                         const length = reader.uint32();
                         const name = decoder.decode(reader.read(length));
                         const device = reader.uint32();
