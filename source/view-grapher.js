@@ -1,7 +1,7 @@
 /* jshint esversion: 6 */
 
 var grapher = grapher || {};
-var dagre = dagre || require('dagre');
+var dagre = dagre || require('./dagre');
 
 grapher.Graph = class {
 
