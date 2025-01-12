@@ -89,7 +89,7 @@ pytorch.Graph = class {
             return values.get(name);
         };
         const torch = execution ? execution.torch : null;
-        if (torch && module instanceof torch.jit._script.RecursiveScriptModule && module.graph) {
+        if (torch && module instanceof torch.jit._script.RecursiveScriptModule && module._c._has_method('forward')) {
             const initializers = new Map();
             const graph = module.graph;
             const constants = module.code_with_constants[1].const_mapping;
@@ -1259,9 +1259,11 @@ pytorch.Container.Zip = class extends pytorch.Container {
             this.module = torch.jit.load(reader);
             this.execution.trace = true;
             if (this.execution.to_ir) {
-                // console.log(this.module.graph.toString());
-                torch._C._jit_pass_inline(this.module.graph);
-                // console.log(this.module.graph.toString());
+                if (this.module._c._has_method('forward')) {
+                    // console.log(this.module.graph.toString());
+                    torch._C._jit_pass_inline(this.module.graph);
+                    // console.log(this.module.graph.toString());
+                }
             }
             if (!this.execution.to_ir) {
                 metadata.register(this.execution);
@@ -1342,9 +1344,11 @@ pytorch.Container.ModelJson = class extends pytorch.Container {
         this.module = torch.jit.load(reader);
         this.execution.trace = true;
         if (this.execution.to_ir) {
-            // console.log(this.module.graph.toString());
-            torch._C._jit_pass_inline(this.module.graph);
-            // console.log(this.module.graph.toString());
+            if (this.module._c._has_method('forward')) {
+                // console.log(this.module.graph.toString());
+                torch._C._jit_pass_inline(this.module.graph);
+                // console.log(this.module.graph.toString());
+            }
         }
         if (!this.execution.to_ir) {
             metadata.register(this.execution);
@@ -4066,8 +4070,14 @@ pytorch.Metadata = class {
             }
         }
         for (const module of modules) {
+            // const existing = execution.register(`torch.ops.${module}`);
             const namespace = new torch._ops._OpNamespace(module);
-            execution.register(`torch.ops.${module}`, namespace);
+            /* const created = */ execution.register(`torch.ops.${module}`, namespace);
+            /* for (const [name, obj] of Object.entries(existing)) {
+                if (!name.startsWith('__') && !(name in created)) {
+                    created[name] = obj;
+                }
+            } */
         }
     }
 };
